@@ -31,15 +31,8 @@ function jsonError(res, message) {
   res.json({ status: 'error', message });
 }
 
-app.get('/', (req, res) => {
-  res.json({ wow: 'it works!' });
-});
-
 // If you want to see the wiki client, run npm install && npm build in the client folder,
-// then comment the line above and uncomment out the lines below and comment the line above.
-// app.get('*', (req, res) => {
-//   res.sendFile(path.join(__dirname, 'client', 'build', 'index.html'));
-// });
+// statically serve /client/build
 
 // GET: '/api/page/:slug'
 // success response: {status: 'ok', body: '<file contents>'}
