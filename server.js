@@ -87,6 +87,37 @@ app.get('/api/pages/all', (req, res) => {
 //  tags are any word in all documents with a # in front of it
 // failure response: no failure response
 
+app.get('/api/tags/all', (req, res) => {
+  readDir(DATA_DIR, 'utf-8')
+    .then((dirRead) => {
+
+      console.log('readDir results: ', dirRead); 
+
+      let listArr = dirRead.filter(fileName => { 
+
+        const path = slugToPath(fileName.replace('.md', '')); // to made path (data/...) from slug (...)
+        
+        const fileContent = fs.readFileSync(path, 'utf-8')
+
+            const regex = new RegExp(TAG_RE);
+            
+            if (regex.test(fileContent)) {
+
+              // console.log(`${path} includes \"#\"`);
+
+              return true;
+            }else{
+              return false;
+            }
+      });
+      // console.log(listArr);
+      jsonOK(res, { tags: listArr })
+    })
+    .catch((err) => {
+      console.error('readDir error..', err);
+    });
+});
+
 // GET: '/api/tags/:tag'
 // success response: {status:'ok', tag: 'tagName', pages: ['tagName', 'otherTagName']}
 //  file names do not have .md, just the name!
