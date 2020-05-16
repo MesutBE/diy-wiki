@@ -69,6 +69,19 @@ app.get('/api/page/:slug', (req, res) => {
 //  file names do not have .md, just the name!
 // failure response: no failure response
 
+app.get('/api/pages/all', (req, res) => {
+  readDir(DATA_DIR, 'utf-8')
+    .then((dirRead) => {
+      console.log(dirRead);
+      let listArr = dirRead.map(fileName => { return fileName.replace('.md', '') });
+      console.log(listArr);
+      jsonOK(res, { pages :listArr })
+    })
+    .catch((err) => {
+      console.error(err); 
+    });
+});
+
 // GET: '/api/tags/all'
 // success response: {status:'ok', tags: ['tagName', 'otherTagName']}
 //  tags are any word in all documents with a # in front of it
