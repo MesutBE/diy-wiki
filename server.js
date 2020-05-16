@@ -69,13 +69,14 @@ app.post('/api/page/:slug', (req, res) => {
 
     const slug = req.params.slug;
     const path = slugToPath(slug);
-    const body = req.body.toString();
+    const body = req.body.body;    
 
     writeFile(path, body, 'utf-8')
       .then(() => {
         jsonOK(res, {});
       })
       .catch((err) => {
+        console.log('Error', err);
         jsonError(res, 'Could not write page.')
       })
 });
