@@ -65,6 +65,21 @@ app.get('/api/page/:slug', (req, res) => {
 // success response: {status: 'ok'}
 // failure response: {status: 'error', message: 'Could not write page.'}
 
+app.post('/api/page/:slug', (req, res) => {
+
+    const slug = req.params.slug;
+    const path = slugToPath(slug);
+    const body = req.body.toString();
+
+    writeFile(path, body, 'utf-8')
+      .then(() => {
+        jsonOK(res, {});
+      })
+      .catch((err) => {
+        jsonError(res, 'Could not write page.')
+      })
+});
+
 // GET: '/api/pages/all'
 // success response: {status:'ok', pages: ['fileName', 'otherFileName']}
 //  file names do not have .md, just the name!
