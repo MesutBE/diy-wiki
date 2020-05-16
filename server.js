@@ -8,10 +8,11 @@ const fs = require('fs');
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
+app.use(bodyParser.raw({ type: 'text/plain' }));
 
 // Uncomment this out once you've made your first route.
 app.use(express.static(path.join(__dirname, 'client', 'build')));
-console.log(path.join(__dirname, 'client', 'build')); // ../diy-wiki/client/build
+// console.log(path.join(__dirname, 'client', 'build')); // ../diy-wiki/client/build
 
 // some helper functions you can use
 const readFile = util.promisify(fs.readFile);
@@ -49,7 +50,7 @@ app.get('/', (req, res) => {
 app.get('/api/page/:slug', (req, res) => {
   const paramSlug = req.params.slug;
   const path = slugToPath(paramSlug);
-  readFile(path, 'utf8')
+  readFile(path, 'utf-8')
     .then((content) => {
       jsonOK(res, { body: content });
     })
@@ -106,7 +107,7 @@ app.get('/api/tags/all', (req, res) => {
 
         lines.forEach( line => {
           if (regex.test(line)) {
-            line.split(' ').forEach(tag => tagList.push(tag))
+            line.split(' ').forEach(tag => tagList.push(tag.replace('#', '')))
 
           }
         });
@@ -133,6 +134,37 @@ app.get('/api/tags/all', (req, res) => {
 //  file names do not have .md, just the name!
 // failure response: no failure response
 
+app.get('/api/tags/:tag', (req, res) => {
+  const tagName = req.params.tag;
+  readDir(DATA_DIR, 'utf-8')
+    .then((dirRead) => {
+
+      const regex = new RegExp(TAG_RE);
+
+      let listArr = dirRead.filter(fileName => {
+
+        const path = slugToPath(fileName.replace('.md', '')); // to made path (data/...) from slug (...)
+
+        const fileContent = fs.readFileSync(path, 'utf-8')
+        
+        // to list file names
+        if (regex.test(fileContent)) {
+          if (!fileContent.includes(`#${tagName}`)){ return false };
+          return true;
+        } else {
+          return false;
+        }
+      });
+      listArr = listArr.map(fileName => { return fileName.replace('.md', '') });
+      // console.log(listArr);
+
+      jsonOK(res, { tag: tagName , pages: listArr })
+    })
+    .catch((err) => {
+      console.error('readDir error..', err);
+    });
+});
+
 app.get('/api/page/all', async (req, res) => {
   const names = await fs.readdir(DATA_DIR);
   console.log(names);
@@ -145,5 +177,5 @@ app.use(function (err, req, res, next) {
   res.status(500).end();
 }); 
 
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 5001;
 app.listen(port, () => console.log(`Wiki app is serving at http://localhost:${port}`));
