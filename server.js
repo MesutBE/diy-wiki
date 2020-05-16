@@ -93,25 +93,35 @@ app.get('/api/tags/all', (req, res) => {
 
       console.log('readDir results: ', dirRead); 
 
+      tagList = [];
+
+      const regex = new RegExp(TAG_RE);
+
       let listArr = dirRead.filter(fileName => { 
 
         const path = slugToPath(fileName.replace('.md', '')); // to made path (data/...) from slug (...)
         
         const fileContent = fs.readFileSync(path, 'utf-8')
+        const lines = fileContent.split('\n')
 
-            const regex = new RegExp(TAG_RE);
-            
-            if (regex.test(fileContent)) {
+        lines.forEach( line => {
+          if (regex.test(line)) {
+            line.split(' ').forEach(tag => tagList.push(tag))
 
-              // console.log(`${path} includes \"#\"`);
-
-              return true;
-            }else{
-              return false;
-            }
+          }
+        });
+        
+        // to list file names
+        if (regex.test(fileContent)) {
+            return true;
+          } else {
+            return false;
+          }
       });
       // console.log(listArr);
-      jsonOK(res, { tags: listArr })
+      console.log(tagList);
+      
+      jsonOK(res, { tags: tagList })
     })
     .catch((err) => {
       console.error('readDir error..', err);
