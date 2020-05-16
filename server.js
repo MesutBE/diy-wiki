@@ -10,7 +10,8 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // Uncomment this out once you've made your first route.
-// app.use(express.static(path.join(__dirname, 'client', 'build')));
+app.use(express.static(path.join(__dirname, 'client', 'build')));
+console.log(path.join(__dirname, 'client', 'build')); // ../diy-wiki/client/build
 
 // some helper functions you can use
 const readFile = util.promisify(fs.readFile);
@@ -31,12 +32,32 @@ function jsonError(res, message) {
   res.json({ status: 'error', message });
 }
 
+app.get('/', (req, res) => {
+  res.json({ wow: 'it works!' });
+});
+
 // If you want to see the wiki client, run npm install && npm build in the client folder,
-// statically serve /client/build
+// then comment the line above and uncomment out the lines below and comment the line above.
+// app.get('*', (req, res) => {
+//   res.sendFile(path.join(__dirname, 'client', 'build', 'index.html'));
+// });
 
 // GET: '/api/page/:slug'
 // success response: {status: 'ok', body: '<file contents>'}
 // failure response: {status: 'error', message: 'Page does not exist.'}
+
+app.get('/api/page/:slug', (req, res) => {
+  const paramSlug = req.params.slug;
+  const path = slugToPath(paramSlug);
+  readFile(path, 'utf8')
+    .then((content) => {
+      jsonOK(res, { body: content });
+    })
+    .catch((err) => {
+      console.log('Error', err);
+      jsonError(res, 'Page does not exist.')
+    }); 
+});
 
 // POST: '/api/page/:slug'
 // body: {body: '<file text content>'}
@@ -63,6 +84,12 @@ app.get('/api/page/all', async (req, res) => {
   console.log(names);
   jsonOK(res, { });
 });
+
+// https://expressjs.com/en/guide/error-handling.html
+app.use(function (err, req, res, next) {
+  console.error(err.stack);
+  res.status(500).end();
+}); 
 
 const port = process.env.PORT || 5000;
 app.listen(port, () => console.log(`Wiki app is serving at http://localhost:${port}`));
